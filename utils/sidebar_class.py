@@ -4,6 +4,9 @@ import dash_bootstrap_components as dbc
 import utils.dash_reusable_components as drc
 from utils.dropdown_options import dataset_options
 from utils.dropdown_options import quantity_options
+from utils.figures import series_colors
+import dash_daq as daq
+
 
 
 class Sidebar:
@@ -95,6 +98,50 @@ class Sidebar:
         if self.chain[:8]=='isotonic':
             return self.neutron[i]
         return self.nucleon[i]
+    
+    def advanced_settings_card(self):
+        return drc.Card(
+            id="advanced-settings-card",
+            title="Advanced Settings",
+            children=[
+                html.Button(
+                    "Advanced", 
+                    id="advanced-toggle-button", 
+                    className="advanced-button"
+                ),
+                html.Div(
+                    id="advanced-settings-options",
+                    style={"display": "none"},  # Initially hidden
+                    children=[
+                        drc.NamedDropdown(
+                            name="Line Color",
+                            id="line-color-picker",
+                            options=[],  # Color picker doesn't need predefined options
+                            searchable=False,
+                            clearable=False,
+                            placeholder="Select a color"
+                        ),
+                        drc.NamedSlider(
+                            name="Line Width",
+                            id="line-width-slider",
+                            min=1,
+                            max=10,
+                            step=1,
+                            value=2  # Default width
+                        ),
+                        dcc.RadioItems(
+                            id="line-style-radio",
+                            options=[
+                                {"label": "Solid", "value": "solid"},
+                                {"label": "Dashed", "value": "dash"},
+                            ],
+                            value="solid",  # Default line style
+                            labelStyle={"display": "block"}
+                        ),
+                    ]
+                )
+            ]
+        )
 
     def show(self):  
         output = [
@@ -150,8 +197,9 @@ class Sidebar:
                         className="quantity-dropdown"                      
                     )
                 ]
-            )
+            ),
         )
+
 
         tabs_component, series_button_card, uncertainty_card = None, None, [None]
         if self.dimension == '1D':
@@ -206,6 +254,54 @@ class Sidebar:
                     series_button_card
                 ])
             )
+            output.append(
+            drc.Card(
+                id="advanced-settings-card",
+                title="Advanced Settings",
+                children=[
+                    html.Button(
+                        "Advanced", 
+                        id="advanced-toggle-button", 
+                        className="advanced-button",
+                        style={"color": "#e76f51"}
+                    ),
+                    html.Div(
+                        id="advanced-settings-options",
+                        style={"display": "none"},  # Initially hidden
+                        children=[
+                           html.Div(
+                            children=[
+                                html.Label("Line Color", className="advanced-label"),
+                                daq.ColorPicker(
+                                    id="line-color-picker",
+                                    value={"hex": "#e76f51"},  # Default color
+                                ),
+                            ],
+                            className="color-picker-container",
+                        ),
+                            drc.NamedSlider(
+                                name="Line Width",
+                                id="line-width-slider",
+                                min=1,
+                                max=10,
+                                step=1,
+                                value=2  # Default width
+                            ),
+                            dcc.RadioItems(
+                                id="line-style-radio",
+                                options=[
+                                    {"label": "Solid", "value": "solid"},
+                                    {"label": "Dashed", "value": "dash"},
+                                ],
+                                value="solid",  # Default line style
+                                labelStyle={"display": "block"}
+                            ),
+                        ]
+                    )
+                ]
+            )
+        )
+
         else:
             if self.dimension == 'single':
                 output.append(self.proton_card(self.series_n-1))
@@ -241,8 +337,8 @@ class Sidebar:
                         ),
                     ]
                 ),
+                
             )
-
         if self.dimension[:9] == 'landscape':
             output.append(
                 drc.Card(
@@ -288,6 +384,7 @@ class Sidebar:
                     html.Button('Delete Plot', id={'type': 'delete-button','index': 1}, value=None, className='delete-button')
                 ])
             )
+            
 
         return output
 

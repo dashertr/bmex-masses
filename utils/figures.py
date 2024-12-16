@@ -138,7 +138,7 @@ def isotopic(quantity, model, colorbar, wigner, Z, N, A, view_range, uncertainti
         traces.append(go.Scatter(
             x=neutrons, y=output, mode="lines+markers", name='Z='+str(Z[i])+' | '+str(model[i]), 
             marker={"size": 7, "color": series_colors[i], "symbol": markers, "line": {"width": 0, "color": 'white'}}, 
-            line={"width": 1}, error_y=error_dict, customdata=est_str,
+            line={"width": 1, "color": series_colors[i]}, error_y=error_dict, customdata=est_str,
             hovertemplate = '<b><i>N</i></b>: %{x}<br>'+'<b><i>'+quantity+'</i></b>: %{y} MeV<br>'+'<b>%{customdata}</b>',
             showlegend=False if model[i]=='AME2020' else True
         ))

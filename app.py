@@ -14,7 +14,7 @@ import string
 
 import dash
 from dash import dcc, ALL, html
-from dash.dependencies import Input, Output, State
+from dash.dependencies import Input, Output, State, MATCH
 import dash_bootstrap_components as dbc
 from dash.exceptions import PreventUpdate
 from dash_breakpoints import WindowBreakpoints
@@ -109,6 +109,57 @@ def link_update(views):
     # return "https://beta.bmex.dev/masses/"+base64.urlsafe_b64encode( json.dumps( [list(cur_views[i].values()) for i in range(len(cur_views))] ).encode()).decode()
     # return "https://beta.bmex.dev/masses/"+base64.urlsafe_b64encode(views.encode()).decode()
 
+@app.callback(
+    Output("advanced-settings-options", "style"),
+    Input("advanced-toggle-button", "n_clicks"),
+    prevent_initial_call=True
+)
+def toggle_advanced_settings(n_clicks):
+    if n_clicks % 2 == 1:  # Odd clicks show the settings
+        return {"display": "block"}
+    else:  # Even clicks hide the settings
+        return {"display": "none"}
+    
+@app.callback(
+    Output({'type': 'graph', 'index': MATCH}, "figure"),  # Update the figure property of the graph
+    Input("line-color-picker", "value"),  # Input from the color picker
+    State({'type': 'graph', 'index': MATCH}, "figure")  # Current figure state
+)
+def update_line_and_marker_color(color, figure):
+    if color:  # Ensure a valid color is selected
+        print("Number of traces:", len(figure["data"]))
+
+        # Safeguard: Ensure the expected traces exist
+        if len(figure["data"]) < 2:
+            print("Error: Not enough traces to update.")
+            raise PreventUpdate
+
+        # Trace 0: Update the legend's marker color
+        legend_trace = figure["data"][0]
+        print("Updating legend trace (Trace 0):", legend_trace)
+        legend_trace.setdefault("marker", {"color": "#000000", "size": 7, "symbol": "circle"})
+        legend_trace["marker"]["color"] = color["hex"]
+
+        # Trace 1: Update the real line and marker colors
+        real_trace = figure["data"][1]
+        print("Updating real trace (Trace 1):", real_trace)
+        real_trace.setdefault("line", {"width": 1, "color": "#000000"})
+        real_trace["line"]["color"] = color["hex"]  # Update line color
+
+        real_trace.setdefault("marker", {"color": "#000000", "size": 7, "symbol": "circle"})
+        real_trace["marker"]["color"] = color["hex"]  # Update marker color
+        real_trace["marker"]["line"]["color"] = color["hex"]  # Update marker outline color
+
+        # Force graph refresh
+        figure["layout"]["uirevision"] = f"refresh-{color['hex']}"
+        return figure
+
+    raise PreventUpdate
+
+
+
+
+    
 @app.callback(
     Output("placeholder", "hidden"),
     State("clipboard", "content"),
